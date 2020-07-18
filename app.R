@@ -174,7 +174,7 @@ ui <-  bootstrapPage(
     sliderInput("jour",h3(""),
                 min = min(dat_cov$day_file), max = max(dat_cov$day_file), step = 1, 
                 value = max(dat_cov$day_file),
-                animate = animationOptions(interval = 2000, loop = FALSE)),
+                animate = animationOptions(interval = 1700, loop = FALSE)),
     
     
     
@@ -252,7 +252,7 @@ server <- function(input, output, session) {
   })
 
   values_leg <- reactive({
-    req(auth$result)  # <---- dependency on authentication result
+    #req(auth$result)  # <---- dependency on authentication result
     
     temp <- data
     if (input$sel_data == "Confirmed"){
@@ -279,7 +279,7 @@ server <- function(input, output, session) {
   })
 
   leg_title <- reactive({
-    req(auth$result)  # <---- dependency on authentication result
+    #req(auth$result)  # <---- dependency on authentication result
     
     if (input$pop){
       htmltools::HTML('Nb for<br>100,000<br>inhab.')
@@ -289,7 +289,7 @@ server <- function(input, output, session) {
   })
 
   output$covid <- renderLeaflet({
-    req(auth$result)  # <---- dependency on authentication result
+    #req(auth$result)  # <---- dependency on authentication result
     
     leaflet(data = data.p) %>%
       addProviderTiles("CartoDB", options = providerTileOptions(opacity = 1, minZoom = 3, maxZoom = 6), group = "Open Street Map") %>%
@@ -297,15 +297,15 @@ server <- function(input, output, session) {
       addPolygons(group = 'base',
                   fillColor = NA,
                   color = 'white',
-                  weight = 2.5)  %>%
+                  weight = 1.3)  %>%
       addLegend(pal = pal(), values = values_leg(), opacity = 1, title = leg_title(),
-                position = "topright", na.label = 'No&nbsp;data', )
+                position = "topright", na.label = 'No&nbsp;data')
   })
 
 
-
+  
   pal <- reactive({
-    req(auth$result)  # <---- dependency on authentication result
+    #req(auth$result)  # <---- dependency on authentication result
     
     if (input$sel_data != "Recovered"){
       return(colorNumeric(scico::scico(n = 300, palette = "tokyo", direction = - 1, end = 0.85), values_leg(), na.color = '#c1c1d7'))
@@ -314,14 +314,14 @@ server <- function(input, output, session) {
     }
   })
 
-
   observe({
-    req(auth$result)  # <---- dependency on authentication result
+    #req(auth$result)  # <---- dependency on authentication result
     
-    if(input$jour == min(dat_cov$day_file)){
+    if(input$jour %in% c(min(dat_cov$day_file, max(dat_cov$day_file)))){ #
       data <- get_data()
       leafletProxy('covid', data = data, session = session) %>%
         clearGroup('polygons') %>%
+        clearGroup('base') %>% 
         addPolygons(group = 'polygons',
                     fillColor = ~pal()(val),
                     fillOpacity = 1,
